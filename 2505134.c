@@ -130,8 +130,8 @@ restart:
                     int x = col * (brickWidth + brickSpacing);
                     int y = 80 + row * (brickHeight + brickSpacing);
                     Rectangle brickRect = {
-                        col * (brickWidth + brickSpacing),
-                        80 + row * (brickHeight + brickSpacing),
+                        x,
+                        y,
                         brickWidth,
                         brickHeight};
                     DrawRectangle(x, y, brickWidth, brickHeight, GREEN);
