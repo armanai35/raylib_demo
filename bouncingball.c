@@ -1,14 +1,56 @@
 #include "raylib.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
 #define WIDTH 800
 #define HEIGHT 600
+#define ROWS 6
+#define COLS 19
+#define radius 20
+#define startX 30
+#define startY 50
 int main(void)
 {
+    srand(time(NULL));
     InitWindow(WIDTH, HEIGHT, "Bouncing Ball");
     SetTargetFPS(60);
     Texture2D background = LoadTexture("assets/sprites/begin.png");
     Texture2D gameBackground = LoadTexture("assets/sprites/game.png");
     int page = 1;
+    Vector2 ballPosition[ROWS][COLS];
+    int ballSerial[ROWS][COLS];
+    Color ballColor[ROWS][COLS];
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLS; col++)
+        {
+            ballPosition[row][col].x = startX + col * 2 * radius;
+            ballPosition[row][col].y = startY + row * sqrt(3) * radius;
+            if (row % 2 == 1)
+            {
+                ballPosition[row][col].x += radius;
+            }
+            int color;
+            do
+            {
+                color = rand() % 3;
+            } while ((col >= 2 && color == ballSerial[row][col - 1] && color == ballSerial[row][col - 2]) || (row >= 4 && color == ballSerial[row - 2][col] && color == ballSerial[row - 4][col]) || (row >= 2 && col < COLS - 2 && color == ballSerial[row - 2][col + 1] && color == ballSerial[row - 1][col + 2]) || (row >= 2 && col >= 2 && color == ballSerial[row - 2][col - 1] && color == ballSerial[row - 1][col - 2]));
+            ballSerial[row][col] = color;
+            if (color == 0)
+            {
+                ballColor[row][col] = RED;
+            }
+            else if (color == 1)
+            {
+                ballColor[row][col] = BLUE;
+            }
+            else
+            {
+                ballColor[row][col] = GREEN;
+            }
+        }
+    }
     while (!WindowShouldClose())
     {
         if (page == 1)
@@ -36,7 +78,6 @@ int main(void)
             }
         }
         BeginDrawing();
-
         if (page == 3)
         {
             Rectangle source = {0, 0, gameBackground.width, gameBackground.height};
@@ -70,7 +111,13 @@ int main(void)
         }
         else if (page == 3)
         {
-            DrawText("GAME STARTED!", 270, 250, 40, DARKGREEN);
+            for (int row = 0; row < ROWS; row++)
+            {
+                for (int col = 0; col < COLS; col++)
+                {
+                    DrawCircleV(ballPosition[row][col], radius, ballColor[row][col]);
+                }
+            }
         }
         EndDrawing();
     }
