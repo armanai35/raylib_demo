@@ -17,7 +17,12 @@ int main(void)
     SetTargetFPS(60);
     Texture2D background = LoadTexture("assets/sprites/begin.png");
     Texture2D gameBackground = LoadTexture("assets/sprites/game.png");
-    int page = 1;
+    Texture2D dragon = LoadTexture("assets/sprites/dragon.png");
+    Vector2 shootBallPosition = {415, 485};
+    Vector2 shootBallVelocity = {0, 0};
+    int shooting = 0;
+    int shootBallColor = 0;
+    int page = 1, canShoot = 0;
     Vector2 ballPosition[ROWS][COLS];
     int ballSerial[ROWS][COLS];
     Color ballColor[ROWS][COLS];
@@ -31,11 +36,42 @@ int main(void)
             {
                 ballPosition[row][col].x += radius;
             }
+            int possibleColors[3];
+            int count = 0;
+            for (int color = 0; color < 3; color++)
+            {
+                int valid = 1;
+                if (col >= 2 && color == ballSerial[row][col - 1] && color == ballSerial[row][col - 2])
+                {
+                    valid = 0;
+                }
+                if (row >= 2 && color == ballSerial[row - 1][col] && color == ballSerial[row - 2][col])
+                {
+                    valid = 0;
+                }
+                if (row >= 2 && col >= 2 && color == ballSerial[row - 1][col - 1] && color == ballSerial[row - 2][col - 2])
+                {
+                    valid = 0;
+                }
+                if (row >= 2 && col < COLS - 2 && color == ballSerial[row - 1][col + 1] && color == ballSerial[row - 2][col + 2])
+                {
+                    valid = 0;
+                }
+                if (valid)
+                {
+                    possibleColors[count] = color;
+                    count++;
+                }
+            }
             int color;
-            do
+            if (count > 0)
+            {
+                color = possibleColors[rand() % count];
+            }
+            else
             {
                 color = rand() % 3;
-            } while ((col >= 2 && color == ballSerial[row][col - 1] && color == ballSerial[row][col - 2]) || (row >= 4 && color == ballSerial[row - 2][col] && color == ballSerial[row - 4][col]) || (row >= 2 && col < COLS - 2 && color == ballSerial[row - 2][col + 1] && color == ballSerial[row - 1][col + 2]) || (row >= 2 && col >= 2 && color == ballSerial[row - 2][col - 1] && color == ballSerial[row - 1][col - 2]));
+            }
             ballSerial[row][col] = color;
             if (color == 0)
             {
@@ -77,12 +113,40 @@ int main(void)
                 }
             }
         }
+        if(shootBallPosition.x<0||shootBallPosition.x>WIDTH){
+            shootBallVelocity.x=-shootBallVelocity.x;
+        }
         BeginDrawing();
         if (page == 3)
         {
             Rectangle source = {0, 0, gameBackground.width, gameBackground.height};
             Rectangle dest = {0, 0, WIDTH, HEIGHT};
             DrawTexturePro(gameBackground, source, dest, (Vector2){0, 0}, 0, WHITE);
+            Rectangle source1 = {0, 0, dragon.width, dragon.height};
+            Rectangle dest1 = {275, 450, 250, 160};
+            DrawTexturePro(dragon, source1, dest1, (Vector2){0, 0}, 0, WHITE);
+            DrawCircleV(shootBallPosition, radius, RED);
+            if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+            {
+                canShoot = 1;
+            }
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && shooting == 0&& canShoot == 1)
+            {
+                canShoot = 0;
+                Vector2 mouse = GetMousePosition();
+                Vector2 direction = {mouse.x - shootBallPosition.x, mouse.y - shootBallPosition.y};
+                float length = sqrt(direction.x * direction.x + direction.y * direction.y);
+                direction.x /= length;
+                direction.y /= length;
+                shootBallVelocity.x = direction.x * 500;
+                shootBallVelocity.y = direction.y * 500;
+                shooting = 1;
+            }
+            if (shooting == 1)
+            {
+                shootBallPosition.x += shootBallVelocity.x * GetFrameTime();
+                shootBallPosition.y += shootBallVelocity.y * GetFrameTime();
+            }
         }
         else
         {
@@ -123,6 +187,7 @@ int main(void)
     }
     UnloadTexture(background);
     UnloadTexture(gameBackground);
+    UnloadTexture(dragon);
     CloseWindow();
     return 0;
 }
